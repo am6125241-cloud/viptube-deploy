@@ -742,13 +742,13 @@ function VideoInfo({
   const [descExpanded, setDescExpanded] = useState(false);
 
   const handleShare = async () => {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const url = `https://viptube-deploy-cv6p.vercel.app/watch?v=${videoId}`;
     try {
       await navigator.clipboard.writeText(url);
       toast.success('Link copied to clipboard!', {
         description: video.title,
         action: {
-          label: 'Watch on Web',
+          label: 'Watch on V.I.P Tube',
           onClick: () => window.open(url, '_blank'),
         },
       });
