@@ -417,29 +417,35 @@ export default function SearchResults() {
           </motion.div>
         )}
 
-        {/* Shorts section — horizontal scroll of short videos related to search */}
+        {/* Shorts section — vertical snap scroll like YouTube Shorts */}
         {!isLoading && !isError && displayShorts.length > 0 && activeFilter === 'shorts' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <Clapperboard className="h-5 w-5 text-red-500" />
-              <h3 className="text-base font-bold">Shorts</h3>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {displayShorts.length}
-              </span>
-              <div className="flex-1 h-px bg-gradient-to-r from-red-500/20 to-transparent ml-2" />
-            </div>
-            <ScrollArea className="w-full">
-              <div className="flex gap-3 pb-3">
-                {displayShorts.map((video: VideoItem, index: number) => (
-                  <motion.div
-                    key={video.videoId || `short-${index}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="shrink-0 w-[160px] sm:w-[180px] cursor-pointer group"
+          <div className="fixed inset-0 top-[104px] z-30 bg-black">
+            <div
+              className="h-full overflow-y-auto snap-y snap-mandatory"
+              style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {displayShorts.map((video: VideoItem, index: number) => (
+                <div
+                  key={video.videoId || `short-${index}`}
+                  className="h-full w-full snap-start snap-always flex items-center justify-center relative bg-black"
+                >
+                  {/* Thumbnail */}
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  {/* Gradient overlays */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
+
+                  {/* Play button center */}
+                  <button
+                    className="absolute inset-0 flex items-center justify-center z-10"
                     onClick={() => {
                       if (video.videoId) {
                         useAppStore.getState().setCurrentVideoId(video.videoId);
@@ -447,47 +453,58 @@ export default function SearchResults() {
                       }
                     }}
                   >
-                    <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-lg transition-all duration-300">
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      {/* Play icon overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                          <Play className="h-5 w-5 text-white fill-white ml-0.5" />
-                        </div>
-                      </div>
-                      {/* Duration badge */}
-                      {video.duration > 0 && (
-                        <div className="absolute bottom-2 right-2 bg-black/85 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
-                          {formatDuration(video.duration)}
-                        </div>
-                      )}
-                      {/* Shorts badge */}
-                      <div className="absolute top-2 left-2 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        Shorts
-                      </div>
+                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 transition-colors active:scale-90">
+                      <Play className="h-8 w-8 text-white fill-white ml-1" />
                     </div>
-                    {/* Title */}
-                    <p className="text-[11px] font-medium mt-2 line-clamp-2 leading-[1.3]">
+                  </button>
+
+                  {/* Bottom info */}
+                  <div className="absolute bottom-0 left-0 right-0 z-10 p-4 pb-8">
+                    <p className="text-white text-sm font-semibold line-clamp-2 drop-shadow-lg mb-1">
                       {video.title}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                    <p className="text-white/70 text-xs drop-shadow">
                       {video.uploaderName}
                     </p>
-                  </motion.div>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" className="h-1" />
-            </ScrollArea>
-          </motion.div>
+                    {video.duration > 0 && (
+                      <div className="absolute bottom-4 right-4 bg-black/70 text-white text-[11px] font-medium px-2 py-0.5 rounded">
+                        {formatDuration(video.duration)}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Shorts badge top-left */}
+                  <div className="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
+                    <Clapperboard className="h-3 w-3" />
+                    Shorts
+                  </div>
+
+                  {/* Swipe hint on first short */}
+                  {index === 0 && displayShorts.length > 1 && (
+                    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 animate-bounce">
+                      <div className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-1">
+                        <div className="w-1.5 h-2.5 bg-white/70 rounded-full animate-pulse" />
+                      </div>
+                      <p className="text-white/50 text-[10px]">Swipe up</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* Close button */}
+            <button
+              onClick={() => setActiveFilter('all')}
+              className="absolute top-3 right-3 z-40 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            {/* Counter */}
+            <div className="absolute top-4 left-14 z-40 bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
+              {displayShorts.length} shorts
+            </div>
+          </div>
         )}
       </div>
     </div>

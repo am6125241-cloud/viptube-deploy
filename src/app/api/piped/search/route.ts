@@ -58,6 +58,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // 'shorts' filter — dedicated shorts search with many queries for more results
+    if (filter === 'shorts') {
+      const [shortsResult, shortsResult2] = await Promise.allSettled([
+        searchMultipleQueries([`${q} shorts`, `${q} short video`, `${q} #shorts`, `${q} viral short`], 40),
+        searchMultipleQueries([`${q} trending shorts`, `${q} funny shorts`, `${q} shorts 2025`, `${q} best shorts`, `${q} new shorts`], 40),
+      ]);
+      const shorts1 = shortsResult.status === 'fulfilled' ? shortsResult.value.videos : [];
+      const shorts2 = shortsResult2.status === 'fulfilled' ? shortsResult2.value.videos : [];
+      // Deduplicate by videoId
+      const seen = new Set<string>();
+      const shorts = [...shorts1, ...shorts2].filter(v => {
+        if (seen.has(v.videoId)) return false;
+        seen.add(v.videoId);
+        return true;
+      });
+      return NextResponse.json({ videos: [], channels: [], playlists: [], shorts });
+    }
+
     // 'all' filter — multi-query search for mixed results + shorts
     if (filter === 'all') {
       const [videoResult, mixedResult, shortsResult] = await Promise.allSettled([
