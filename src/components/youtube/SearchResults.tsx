@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { RefreshCw, AlertCircle, SearchX, Users, ListVideo, Video, ChevronRight, Play, Flame, Clapperboard, Loader2 } from 'lucide-react';
@@ -55,6 +55,205 @@ function PlaylistCardSkeleton() {
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-3/4" />
+      </div>
+    </div>
+  );
+}
+
+// YouTube Shorts player with vertical snap scroll + tap to pause
+function ShortsPlayer({ shorts, onClose }: { shorts: VideoItem[]; onClose: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [paused, setPaused] = useState<Record<number, boolean>>({});
+  const itemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const iframeRefs = useRef<Map<number, HTMLIFrameElement>>(new Map());
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
+            const idx = Number(entry.target.getAttribute('data-index'));
+            if (!isNaN(idx)) setActiveIndex(idx);
+          }
+        }
+      },
+      { root: container, threshold: [0.65] }
+    );
+    itemRefs.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [shorts.length]);
+
+  useEffect(() => {
+    shorts.forEach((_, i) => {
+      const iframe = iframeRefs.current.get(i);
+      if (!iframe?.contentWindow) return;
+      if (i === activeIndex) {
+        if (!paused[i]) {
+          iframe.contentWindow.postMessage(
+            JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
+          );
+        }
+      } else {
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'
+        );
+      }
+    });
+  }, [activeIndex, shorts.length, paused]);
+
+  const scrollToIndex = useCallback((idx: number) => {
+    const el = itemRefs.current.get(idx);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const handleTap = useCallback((index: number) => {
+    const iframe = iframeRefs.current.get(index);
+    if (!iframe?.contentWindow) return;
+    setPaused((prev) => {
+      const isPaused = !prev[index];
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: isPaused ? 'pauseVideo' : 'playVideo', args: [] }), '*'
+      );
+      return { ...prev, [index]: isPaused };
+    });
+  }, []);
+
+  const goNext = useCallback(() => { if (activeIndex < shorts.length - 1) scrollToIndex(activeIndex + 1); }, [activeIndex, shorts.length, scrollToIndex]);
+  const goPrev = useCallback(() => { if (activeIndex > 0) scrollToIndex(activeIndex - 1); }, [activeIndex, scrollToIndex]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.key === 'j') goNext();
+      else if (e.key === 'ArrowUp' || e.key === 'k') goPrev();
+      else if (e.key === ' ') { e.preventDefault(); handleTap(activeIndex); }
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [activeIndex, goNext, goPrev, handleTap, onClose]);
+
+  return (
+    <div className="fixed inset-0 top-[104px] z-30 bg-black">
+      <div
+        ref={scrollRef}
+        className="h-full overflow-y-auto snap-y snap-mandatory"
+        style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {shorts.map((video, index) => (
+          <div
+            key={video.videoId || `short-${index}`}
+            data-index={index}
+            ref={(el) => { if (el) itemRefs.current.set(index, el); }}
+            className="h-full w-full snap-start snap-always relative bg-black"
+          >
+            {Math.abs(index - activeIndex) <= 1 ? (
+              <iframe
+                ref={(el) => { if (el) iframeRefs.current.set(index, el); }}
+                src={`https://www.youtube.com/embed/${video.videoId}?autoplay=${index === activeIndex ? '1' : '0'}&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&loop=1&playlist=${video.videoId}&showinfo=0&iv_load_policy=3`}
+                className="absolute inset-0 w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                style={{ border: 'none' }}
+                loading="lazy"
+              />
+            ) : (
+              <img
+                src={video.thumbnail}
+                alt={video.title}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+              />
+            )}
+
+            {/* Tap overlay */}
+            <div className="absolute inset-0 z-10" onClick={() => handleTap(index)} />
+
+            {/* Gradients */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none z-[11]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none z-[11]" />
+
+            {/* Pause indicator */}
+            {paused[index] && (
+              <div className="absolute inset-0 flex items-center justify-center z-[12] pointer-events-none">
+                <div className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                  <Play className="h-8 w-8 text-white fill-white ml-1" />
+                </div>
+              </div>
+            )}
+
+            {/* Bottom info */}
+            <div className="absolute bottom-0 left-0 right-0 z-[13] p-4 pb-8 pointer-events-none">
+              <p className="text-white text-sm font-semibold line-clamp-2 drop-shadow-lg mb-1">{video.title}</p>
+              <p className="text-white/70 text-xs drop-shadow">{video.uploaderName}</p>
+            </div>
+
+            {/* Right side controls */}
+            <div className="absolute right-3 bottom-24 z-[13] flex flex-col items-center gap-5">
+              <button
+                onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white active:scale-90 transition-transform"
+                style={{ opacity: activeIndex > 0 ? 1 : 0.3 }}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+              </button>
+              <div className="text-white/80 text-[11px] font-medium">{activeIndex + 1}/{shorts.length}</div>
+              <button
+                onClick={(e) => { e.stopPropagation(); goNext(); }}
+                className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white active:scale-90 transition-transform"
+                style={{ opacity: activeIndex < shorts.length - 1 ? 1 : 0.3 }}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const iframe = iframeRefs.current.get(index);
+                  if (!iframe?.contentWindow) return;
+                  iframe.contentWindow.postMessage(
+                    JSON.stringify({ event: 'command', func: 'toggleMute', args: [] }), '*'
+                  );
+                }}
+                className="w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white active:scale-90 transition-transform"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Shorts badge */}
+            <div className="absolute top-4 left-4 z-[13] bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1 pointer-events-none">
+              <Clapperboard className="h-3 w-3" /> Shorts
+            </div>
+
+            {index === 0 && shorts.length > 1 && (
+              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-[12] flex flex-col items-center gap-1 animate-bounce pointer-events-none">
+                <div className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-1">
+                  <div className="w-1.5 h-2.5 bg-white/70 rounded-full animate-pulse" />
+                </div>
+                <p className="text-white/50 text-[10px]">Swipe up</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between p-3 pointer-events-none">
+        <div className="bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full pointer-events-auto">
+          {shorts.length} shorts
+        </div>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors pointer-events-auto"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
     </div>
   );
@@ -417,94 +616,9 @@ export default function SearchResults() {
           </motion.div>
         )}
 
-        {/* Shorts section — vertical snap scroll like YouTube Shorts */}
+        {/* Shorts section — vertical snap scroll with YouTube playback */}
         {!isLoading && !isError && displayShorts.length > 0 && activeFilter === 'shorts' && (
-          <div className="fixed inset-0 top-[104px] z-30 bg-black">
-            <div
-              className="h-full overflow-y-auto snap-y snap-mandatory"
-              style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {displayShorts.map((video: VideoItem, index: number) => (
-                <div
-                  key={video.videoId || `short-${index}`}
-                  className="h-full w-full snap-start snap-always flex items-center justify-center relative bg-black"
-                >
-                  {/* Thumbnail */}
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  {/* Gradient overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
-
-                  {/* Play button center */}
-                  <button
-                    className="absolute inset-0 flex items-center justify-center z-10"
-                    onClick={() => {
-                      if (video.videoId) {
-                        useAppStore.getState().setCurrentVideoId(video.videoId);
-                        useAppStore.getState().setCurrentView('watch');
-                      }
-                    }}
-                  >
-                    <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 transition-colors active:scale-90">
-                      <Play className="h-8 w-8 text-white fill-white ml-1" />
-                    </div>
-                  </button>
-
-                  {/* Bottom info */}
-                  <div className="absolute bottom-0 left-0 right-0 z-10 p-4 pb-8">
-                    <p className="text-white text-sm font-semibold line-clamp-2 drop-shadow-lg mb-1">
-                      {video.title}
-                    </p>
-                    <p className="text-white/70 text-xs drop-shadow">
-                      {video.uploaderName}
-                    </p>
-                    {video.duration > 0 && (
-                      <div className="absolute bottom-4 right-4 bg-black/70 text-white text-[11px] font-medium px-2 py-0.5 rounded">
-                        {formatDuration(video.duration)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Shorts badge top-left */}
-                  <div className="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
-                    <Clapperboard className="h-3 w-3" />
-                    Shorts
-                  </div>
-
-                  {/* Swipe hint on first short */}
-                  {index === 0 && displayShorts.length > 1 && (
-                    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 animate-bounce">
-                      <div className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-1">
-                        <div className="w-1.5 h-2.5 bg-white/70 rounded-full animate-pulse" />
-                      </div>
-                      <p className="text-white/50 text-[10px]">Swipe up</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            {/* Close button */}
-            <button
-              onClick={() => setActiveFilter('all')}
-              className="absolute top-3 right-3 z-40 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-            {/* Counter */}
-            <div className="absolute top-4 left-14 z-40 bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full">
-              {displayShorts.length} shorts
-            </div>
-          </div>
+          <ShortsPlayer shorts={displayShorts} onClose={() => setActiveFilter('all')} />
         )}
       </div>
     </div>
