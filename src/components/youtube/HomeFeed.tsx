@@ -112,22 +112,96 @@ function HeroBanner() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
-          <div className="flex items-center gap-2 mb-2">
+          {/* Creative VIP Tube Header */}
+          <div className="flex items-center gap-3 mb-3">
+            {/* Animated Red Box with Glow */}
             <motion.div
-              animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+              animate={{ 
+                scale: [1, 1.15, 1], 
+                rotate: [0, 5, -5, 0],
+                boxShadow: [
+                  '0 0 15px rgba(239,68,68,0.4), 0 0 30px rgba(239,68,68,0.15)',
+                  '0 0 25px rgba(239,68,68,0.6), 0 0 50px rgba(249,115,22,0.2)',
+                  '0 0 15px rgba(239,68,68,0.4), 0 0 30px rgba(239,68,68,0.15)',
+                ]
+              }}
               transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="relative flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 via-red-600 to-orange-500 shadow-lg"
             >
-              <Flame className="h-5 w-5 text-red-500" />
+              <Flame className="h-5 w-5 text-white drop-shadow-sm" />
+              {/* Sparkle ring around the box */}
+              <motion.div
+                className="absolute inset-0 rounded-xl border-2 border-red-400/50"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
             </motion.div>
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
-              Discover
-            </span>
+            
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.25em]">
+                Discover
+              </span>
+              {/* Animated underline bar */}
+              <motion.div
+                className="h-[2px] mt-1 rounded-full bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400"
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+              />
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-            Welcome to{' '}
-            <span className="fire-text">V.I.P Tube</span>
-          </h1>
+          {/* VIP Tube Title - Extra Creative */}
+          <div className="relative mb-4">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
+              Welcome to{' '}
+              <span className="relative inline-block">
+                {/* Background glow behind text */}
+                <motion.span
+                  className="absolute inset-0 blur-xl opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #ef4444, #f97316, #eab308)' }}
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <span className="fire-text relative">V.I.P Tube</span>
+                {/* Shimmer sweep over text */}
+                <motion.span
+                  className="absolute inset-0"
+                  style={{ 
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                    backgroundSize: '200% 100%',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                  animate={{ backgroundPosition: ['-200% 0', '200% 0'] }}
+                  transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'linear' }}
+                >
+                  V.I.P Tube
+                </motion.span>
+              </span>
+            </h1>
+            {/* Decorative animated dots under the heading */}
+            <div className="flex items-center gap-1.5 mt-2">
+              <motion.span
+                className="h-1.5 w-1.5 rounded-full bg-red-500"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+              />
+              <motion.span
+                className="h-1.5 w-1.5 rounded-full bg-orange-500"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+              />
+              <motion.span
+                className="h-1.5 w-1.5 rounded-full bg-yellow-500"
+                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+              />
+              <div className="h-px flex-1 bg-gradient-to-r from-yellow-500/30 via-orange-500/20 to-transparent ml-2" />
+            </div>
+          </div>
+
           <p className="text-muted-foreground text-sm sm:text-base max-w-xl mb-6 leading-relaxed font-medium">
             Watch trending videos, explore categories, and enjoy ad-free streaming.
             Your personalized video experience starts here.
