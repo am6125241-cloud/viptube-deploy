@@ -290,12 +290,12 @@ export default function SearchResults() {
         setCurrentPlaylist({
           id: playlist.playlistId,
           name: ytData.name || playlist.title || 'Playlist',
-          thumbnail: ytData.thumbnailUrl || playlist.thumbnail || (ytVideos[0] ? `https://i.ytimg.com/vi/${ytVideos[0].videoId}/hqdefault.jpg` : ''),
+          thumbnail: ytVideos[0] ? `https://i.ytimg.com/vi/${ytVideos[0].videoId}/hqdefault.jpg` : (ytData.thumbnailUrl || playlist.thumbnail || ''),
           channelName: ytData.uploaderName || playlist.channelName || '',
           videos: ytVideos.map((v: any) => ({
             videoId: v.videoId,
             title: v.title || 'Untitled',
-            thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+            thumbnail: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
             channelId: v.channelId || '',
             channelName: v.channelName || '',
             duration: v.duration || 0,
@@ -316,12 +316,12 @@ export default function SearchResults() {
       setCurrentPlaylist({
         id: playlist.playlistId,
         name: data.name || playlist.title || 'Playlist',
-        thumbnail: data.thumbnailUrl || playlist.thumbnail || (playlistVideos[0] ? `https://i.ytimg.com/vi/${playlistVideos[0].videoId}/hqdefault.jpg` : ''),
+        thumbnail: playlistVideos[0] ? `https://i.ytimg.com/vi/${playlistVideos[0].videoId}/hqdefault.jpg` : (data.thumbnailUrl || playlist.thumbnail || ''),
         channelName: data.uploaderName || playlist.channelName || '',
         videos: playlistVideos.map((v: any) => ({
           videoId: v.videoId,
           title: v.title || 'Untitled',
-          thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
+          thumbnail: `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
           channelId: v.channelId || '',
           channelName: v.channelName || '',
           duration: v.duration || 0,
@@ -571,8 +571,8 @@ export default function SearchResults() {
                   className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer text-left disabled:opacity-60"
                 >
                   <div className="relative w-40 sm:w-48 aspect-video rounded-lg overflow-hidden bg-muted shrink-0">
-                    {playlist.thumbnail && !playlist.thumbnail.includes('pipedproxy') ? (
-                      <img src={playlist.thumbnail} alt={playlist.title} className="w-full h-full object-cover" />
+                    {playlist.thumbnail ? (
+                      <img src={playlist.thumbnail} alt={playlist.title} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-muted to-muted/50">
                         <ListVideo className="h-8 w-8 text-muted-foreground/40" />

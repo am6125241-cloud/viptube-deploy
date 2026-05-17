@@ -89,10 +89,18 @@ async function searchPiped(query: string, filter: string): Promise<{
       } else if (item.type === 'playlist') {
         const playlistId = extractPlaylistIdFromUrl(item.url || '');
         if (!playlistId || !item.name) continue;
+        // Convert Piped proxy thumbnail to ytimg (Piped proxy URLs are broken)
+        let thumb = item.thumbnail || '';
+        if (thumb && (thumb.includes('pipedproxy') || thumb.includes('/vi/'))) {
+          const vidMatch = thumb.match(/\/vi\/([^/]+)\//);
+          if (vidMatch) {
+            thumb = `https://i.ytimg.com/vi/${vidMatch[1]}/hqdefault.jpg`;
+          }
+        }
         playlists.push({
           playlistId,
           title: item.name || '',
-          thumbnail: item.thumbnail || '',
+          thumbnail: thumb,
           videoCount: item.videos || 0,
           channelName: item.uploaderName || '',
           channelId: extractChannelIdFromUrl(item.uploaderUrl || ''),

@@ -40,7 +40,12 @@ export async function GET(
             return false;
           })
           .map((v: any) => {
-            const videoId = v.url ? v.url.replace('/watch?v=', '') : (v.videoId || '');
+            // Extract videoId robustly — handle both /watch?v=ID and https://youtube.com/watch?v=ID
+            let videoId = v.videoId || '';
+            if (!videoId && v.url) {
+              const m = v.url.match(/[?&]v=([^&]+)/);
+              videoId = m ? m[1] : v.url.replace(/^\/watch\?v=/, '');
+            }
             return {
               videoId,
               title: v.title || v.name || 'Untitled',

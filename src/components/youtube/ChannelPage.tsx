@@ -235,20 +235,23 @@ export default function ChannelPage() {
         return;
       }
       const playlistData = await res.json();
-      const videos: QueueItem[] = (playlistData.videos || []).map((v: any) => ({
-        videoId: v.url?.replace('/watch?v=', '') || v.videoId || '',
-        title: v.title || 'Untitled',
-        thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.videoId || v.url?.replace('/watch?v=', '')}/hqdefault.jpg`,
-        channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || '',
-        channelName: v.uploaderName || playlist?.channelName || '',
-        duration: v.duration || 0,
-      })).filter((v: QueueItem) => v.videoId);
+      const videos: QueueItem[] = (playlistData.videos || []).map((v: any) => {
+        const vid = v.videoId || (v.url ? (v.url.match(/[?&]v=([^&]+)/)?.[1] || v.url.replace(/^\/watch\?v=/, '')) : '');
+        return {
+          videoId: vid,
+          title: v.title || 'Untitled',
+          thumbnail: vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : '',
+          channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || v.channelId || '',
+          channelName: v.uploaderName || playlist?.channelName || '',
+          duration: v.duration || 0,
+        };
+      }).filter((v: QueueItem) => v.videoId && v.videoId.length > 5);
 
       if (videos.length > 0) {
         setCurrentPlaylist({
           id: playlistId,
           name: playlistData.name || playlist?.title || 'Playlist',
-          thumbnail: playlistData.thumbnailUrl || playlist?.thumbnail || (videos[0] ? `https://i.ytimg.com/vi/${videos[0].videoId}/hqdefault.jpg` : ''),
+          thumbnail: `https://i.ytimg.com/vi/${videos[0].videoId}/hqdefault.jpg`,
           channelName: playlistData.uploaderName || playlist?.channelName || '',
           videos,
           currentIndex: 0,

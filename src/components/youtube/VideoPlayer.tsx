@@ -354,18 +354,43 @@ export default function VideoPlayer() {
     );
   }
 
+  // Playlist panel is always shown when a playlist is active (even during loading/error)
+  const playlistPanel = currentPlaylist ? <PlaylistPanel /> : null;
+
   if (isLoading) {
-    return <VideoPlayerSkeleton />;
+    return (
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-w-0">
+          <VideoPlayerSkeleton />
+        </div>
+        {playlistPanel && (
+          <div className="hidden lg:block w-[402px] shrink-0">
+            {playlistPanel}
+          </div>
+        )}
+      </div>
+    );
   }
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <p className="text-lg font-medium">Failed to load video</p>
-        <p className="text-sm text-muted-foreground">{error?.message}</p>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Retry
-        </Button>
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+            <p className="text-lg font-medium">Failed to load video</p>
+            <p className="text-sm text-muted-foreground">{error?.message}</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </div>
+          {/* Show playlist panel on mobile even on error */}
+          <div className="lg:hidden mt-4">{playlistPanel}</div>
+        </div>
+        {playlistPanel && (
+          <div className="hidden lg:block w-[402px] shrink-0">
+            {playlistPanel}
+          </div>
+        )}
       </div>
     );
   }
@@ -381,7 +406,7 @@ export default function VideoPlayer() {
 
         {/* Playlist Panel - Mobile (RIGHT AFTER video player, prominent position) */}
         <div className="lg:hidden mt-4">
-          {currentPlaylist && <PlaylistPanel />}
+          {playlistPanel}
         </div>
 
         {/* Video Info */}
@@ -411,7 +436,7 @@ export default function VideoPlayer() {
 
       {/* Playlist Panel - Desktop (shown only when playlist is active) */}
       <div className="hidden lg:block w-[402px] shrink-0">
-        {currentPlaylist && <PlaylistPanel />}
+        {playlistPanel}
       </div>
     </div>
   );
@@ -1481,9 +1506,9 @@ function PlaylistPanel() {
       <div className="flex flex-col gap-2 mb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-3 min-w-0">
-            {thumbnail ? (
+            {currentPlaylist.videos.length > 0 ? (
               <img
-                src={thumbnail}
+                src={`https://i.ytimg.com/vi/${currentPlaylist.videos[0].videoId}/hqdefault.jpg`}
                 alt={name}
                 className="w-24 h-[54px] rounded-lg object-cover shrink-0"
                 onError={(e) => {
@@ -1583,13 +1608,13 @@ function PlaylistPanel() {
                 {/* Thumbnail */}
                 <div className="relative w-[120px] aspect-video rounded-md overflow-hidden bg-muted shrink-0">
                   <img
-                    src={video.thumbnail || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`}
+                    src={`https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`}
                     alt={video.title}
                     className="w-full h-full object-cover"
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
+                      target.src = `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`;
                     }}
                   />
                   {isActive && (
