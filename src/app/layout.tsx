@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   description: "Watch videos without ads. A premium ad-free video streaming experience.",
   keywords: ["V.I.P Tube", "ad-free", "video", "streaming", "no ads", "premium"],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/favicon.ico",
   },
 };
 
