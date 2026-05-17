@@ -95,6 +95,8 @@ function AppFooter() {
     <footer className="border-t bg-background/90 backdrop-blur-xl relative overflow-hidden">
       {/* Subtle mesh gradient background */}
       <div className="absolute inset-0 mesh-gradient pointer-events-none" />
+      {/* Creative rainbow divider at top */}
+      <div className="absolute top-0 left-0 right-0 divider-creative" />
       <div className="px-4 sm:px-6 py-5 relative z-10">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Left - brand */}
@@ -429,7 +431,7 @@ function AppContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="min-h-screen flex flex-col bg-background relative"
+            className="min-h-screen flex flex-col bg-background relative noise-bg app-glow"
           >
             <Header />
             <Sidebar />
@@ -440,7 +442,17 @@ function AppContent() {
               style={isDesktop ? { marginLeft: `${sidebarWidth}px` } : undefined}
             >
               <div className="max-w-[1800px] mx-auto">
-                {renderContent()}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentView}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  >
+                    {renderContent()}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </main>
 

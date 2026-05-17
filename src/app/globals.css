@@ -1084,4 +1084,79 @@ a {
   height: 60%;
   border-radius: 0 4px 4px 0;
   background: linear-gradient(180deg, #ef4444, #f97316);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* ================================================================
+   EXTRA CREATIVE TOUCHES
+   ================================================================ */
+
+/* Premium scrollbar thumb gradient */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.15));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.35), rgba(249, 115, 22, 0.25));
+}
+
+/* Animated gradient underline for active nav items */
+@keyframes underline-slide {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Glassmorphism search input focus */
+input[type="text"]:focus,
+input[type="search"]:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08), 0 0 20px rgba(239, 68, 68, 0.04);
+}
+
+/* Premium hover lift for interactive cards */
+.premium-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+.premium-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+.dark .premium-hover-lift:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Subtle shine animation on header */
+@keyframes header-shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animated dots pattern for empty states */
+@keyframes dots-drift {
+  0%, 100% { background-position: 0 0; }
+  50% { background-position: 12px 12px; }
+}
+.dots-pattern-animated {
+  background-image: radial-gradient(circle, rgba(239, 68, 68, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+  animation: dots-drift 20s linear infinite;
+}
+
+/* Glow effect for the main app container */
+.app-glow {
+  position: relative;
+}
+.app-glow::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(239, 68, 68, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.dark .app-glow::before {
+  background: radial-gradient(ellipse, rgba(239, 68, 68, 0.06) 0%, transparent 70%);
 }

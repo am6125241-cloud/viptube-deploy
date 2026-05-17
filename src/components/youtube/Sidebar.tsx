@@ -82,14 +82,21 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <button
         key={item.label}
         onClick={() => handleNav(item.view)}
-        className={`flex items-center gap-5 px-3 py-2.5 rounded-xl transition-all duration-200 w-full text-[13px] font-medium ${
+        className={`flex items-center gap-5 px-3 py-2.5 rounded-xl transition-all duration-300 w-full text-[13px] font-medium relative ${
           isActive
-            ? 'bg-gradient-to-r from-red-50 to-orange-50/50 text-red-700 dark:from-red-500/15 dark:to-orange-500/5 dark:text-red-400 font-semibold shadow-sm'
-            : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+            ? 'bg-gradient-to-r from-red-50 to-orange-50/50 text-red-700 dark:from-red-500/15 dark:to-orange-500/5 dark:text-red-400 font-semibold shadow-sm sidebar-active-indicator card-neon-glow'
+            : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:translate-x-1'
         }`}
       >
-        {item.icon}
+        <span className={`transition-transform duration-200 ${isActive ? 'scale-110 drop-shadow-sm' : ''}`}>{item.icon}</span>
         <span>{item.label}</span>
+        {isActive && (
+          <motion.div
+            className="absolute right-3 h-1.5 w-1.5 rounded-full bg-red-500"
+            layoutId="sidebar-active-dot"
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          />
+        )}
       </button>
     );
   };
@@ -161,13 +168,13 @@ function MiniSidebarContent() {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => handleNav(item.view)}
-                  className={`flex flex-col items-center justify-center w-full py-3 px-1 rounded-xl transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center w-full py-3 px-1 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? 'bg-gradient-to-b from-red-50 to-red-100/50 text-red-600 dark:from-red-500/15 dark:to-red-500/5 dark:text-red-400 font-semibold'
-                      : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                      ? 'bg-gradient-to-b from-red-50 to-red-100/50 text-red-600 dark:from-red-500/15 dark:to-red-500/5 dark:text-red-400 font-semibold shadow-sm scale-105'
+                      : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:scale-105'
                   }`}
                 >
-                  {item.icon}
+                  <span className="transition-transform duration-200">{item.icon}</span>
                   <span className="text-[10px] mt-1.5 leading-tight">{item.label}</span>
                 </button>
               </TooltipTrigger>
@@ -205,7 +212,7 @@ export default function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: -240 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed top-14 left-0 bottom-0 w-60 bg-background z-40 md:hidden shadow-xl"
+              className="fixed top-14 left-0 bottom-0 w-60 z-40 md:hidden shadow-xl glass-card rounded-none border-0 border-l"
             >
               <ScrollArea className="h-full">
                 <SidebarContent onNavigate={() => setSidebarOpen(false)} />
@@ -223,7 +230,8 @@ export default function Sidebar() {
             animate={{ width: 240, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="hidden md:block fixed top-14 left-0 bottom-0 bg-background/95 backdrop-blur-sm z-30 border-r border-border/50 overflow-hidden"
+            className="hidden md:block fixed top-14 left-0 bottom-0 z-30 border-r border-border/50 overflow-hidden"
+            style={{ background: 'rgba(var(--background-rgb, 255,255,255), 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
           >
             <div className="w-60">
               <ScrollArea className="h-full">
@@ -236,7 +244,7 @@ export default function Sidebar() {
 
       {/* Desktop mini sidebar - always visible when full sidebar is closed */}
       {!sidebarOpen && (
-        <aside className="hidden md:flex fixed top-14 left-0 bottom-0 w-[72px] bg-background/80 backdrop-blur-sm z-30 flex-col pt-1 overflow-y-auto border-r border-border/30">
+        <aside className="hidden md:flex fixed top-14 left-0 bottom-0 w-[72px] z-30 flex-col pt-1 overflow-y-auto border-r border-border/30 glass-card rounded-none border-0 border-r animate-glow-border">
           <MiniSidebarContent />
         </aside>
       )}

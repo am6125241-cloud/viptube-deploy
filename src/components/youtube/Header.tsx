@@ -390,7 +390,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-2xl border-b border-border/40 h-14 flex items-center px-4 gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/30 h-14 flex items-center px-4 gap-2 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_0_0_1px_rgba(239,68,68,0.03)]">
       {/* Left section */}
       <div className="flex items-center gap-2 shrink-0">
         <Button
@@ -428,8 +428,8 @@ export default function Header() {
                 animation: 'gradientShift 3s ease infinite',
               }}
             />
-            {/* Glowing ring */}
-            <div className="absolute inset-0 rounded-xl shadow-[0_0_12px_rgba(239,68,68,0.5)] animate-pulse" />
+            {/* Animated glowing ring */}
+            <div className="absolute inset-0 rounded-xl animate-pulse-glow" />
             {/* Play icon */}
             <div className="absolute inset-0 flex items-center justify-center">
               <svg className="h-5 w-5 text-white drop-shadow-sm" viewBox="0 0 24 24" fill="currentColor">
@@ -489,7 +489,7 @@ export default function Header() {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => { setShowSuggestions(true); }}
-              className="rounded-l-xl rounded-r-none border-r-0 h-10 focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1 focus-visible:z-10 bg-muted/30 border-border/60 placeholder:text-muted-foreground/50 transition-all focus-visible:bg-background"
+              className="rounded-l-xl rounded-r-none border-r-0 h-10 focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-1 focus-visible:z-10 bg-muted/30 border-border/60 placeholder:text-muted-foreground/50 transition-all focus-visible:bg-background focus-visible:shadow-[0_0_20px_rgba(239,68,68,0.08)]"
             />
             {searchInput && (
               <Button
@@ -505,7 +505,7 @@ export default function Header() {
           </div>
           <Button
             variant="secondary"
-            className="rounded-r-xl rounded-l-none h-10 px-5 bg-muted/50 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-all border-l border-border/50"
+            className="rounded-r-xl rounded-l-none h-10 px-5 bg-muted/50 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white dark:hover:from-red-500 dark:hover:to-red-600 transition-all duration-300 border-l border-border/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.2)]"
             onClick={() => handleSearch()}
           >
             <Search className="h-5 w-5" />
