@@ -64,26 +64,56 @@ export default function TrendingPage() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-3.5rem)]">
-      {/* Header */}
-      <div className="px-4 sm:px-6 pt-6 pb-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3"
-        >
-          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-red-500/10">
-            <TrendingUp className="h-5 w-5 text-red-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight flex items-center gap-2">
-              Trending
-              <Flame className="h-5 w-5 text-orange-500" />
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              What&apos;s popular in India right now
-            </p>
-          </div>
-        </motion.div>
+      {/* Header - Creative Aurora Section */}
+      <div className="relative overflow-hidden">
+        {/* Animated aurora background */}
+        <div className="absolute inset-0 opacity-25">
+          <div className="absolute inset-0 animate-aurora opacity-50" />
+        </div>
+        {/* Floating particles */}
+        <div className="absolute top-3 left-[15%] w-2 h-2 rounded-full bg-red-500/25 animate-float" style={{ animationDelay: '0.2s' }} />
+        <div className="absolute top-8 right-[20%] w-1.5 h-1.5 rounded-full bg-orange-500/30 animate-float" style={{ animationDelay: '0.8s' }} />
+        <div className="absolute bottom-3 left-[60%] w-2 h-2 rounded-full bg-yellow-500/20 animate-float" style={{ animationDelay: '1.4s' }} />
+        {/* Decorative icons */}
+        <div className="absolute top-2 right-8 opacity-[0.04] dark:opacity-[0.07]">
+          <Flame className="h-28 w-28 animate-float" />
+        </div>
+        <div className="absolute bottom-1 left-6 opacity-[0.03] dark:opacity-[0.06]">
+          <TrendingUp className="h-20 w-20 animate-spin-slow" />
+        </div>
+
+        <div className="relative px-4 sm:px-6 pt-6 pb-5">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4"
+          >
+            {/* Animated icon box with glow */}
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], rotate: [0, 3, -3, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className="flex items-center justify-center h-12 w-12 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 shadow-lg shadow-red-500/25"
+            >
+              <TrendingUp className="h-6 w-6 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                <span className="fire-text">Trending</span>
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Flame className="h-6 w-6 text-orange-500" />
+                </motion.div>
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1 font-medium">
+                What&apos;s popular in India right now
+              </p>
+            </div>
+          </motion.div>
+        </div>
+        {/* Creative divider */}
+        <div className="absolute bottom-0 left-0 right-0 divider-creative" />
       </div>
 
       {/* Content */}

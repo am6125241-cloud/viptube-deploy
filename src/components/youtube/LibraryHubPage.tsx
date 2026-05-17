@@ -91,7 +91,7 @@ function LibraryCardItem({ card }: { card: LibraryCard }) {
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}
-      className="relative overflow-hidden rounded-2xl border border-border/50 bg-card hover:shadow-lg transition-all duration-300 text-left cursor-pointer group w-full"
+      className="relative overflow-hidden rounded-2xl border border-border/50 bg-card hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 text-left cursor-pointer group w-full card-neon-glow"
     >
       {/* Gradient background */}
       <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-60 group-hover:opacity-100 transition-opacity`} />
@@ -99,7 +99,7 @@ function LibraryCardItem({ card }: { card: LibraryCard }) {
       <div className="relative p-5">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-background/80 backdrop-blur-sm shadow-sm">
+            <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-background/80 backdrop-blur-sm shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300">
               {card.icon}
             </div>
             <div>
@@ -156,23 +156,48 @@ function LibraryCardItem({ card }: { card: LibraryCard }) {
 export default function LibraryPage() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-3.5rem)]">
-      {/* Header */}
-      <div className="px-4 sm:px-6 pt-6 pb-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3"
-        >
-          <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-purple-500/10">
-            <Library className="h-5 w-5 text-purple-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight">Library</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Your saved videos and subscriptions
-            </p>
-          </div>
-        </motion.div>
+      {/* Header - Creative Aurora Section */}
+      <div className="relative overflow-hidden">
+        {/* Animated mesh gradient background */}
+        <div className="absolute inset-0 mesh-gradient" />
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 animate-aurora opacity-40" />
+        </div>
+        {/* Floating particles */}
+        <div className="absolute top-4 left-[20%] w-2 h-2 rounded-full bg-purple-500/25 animate-float" style={{ animationDelay: '0.3s' }} />
+        <div className="absolute top-8 right-[25%] w-1.5 h-1.5 rounded-full bg-blue-500/30 animate-float" style={{ animationDelay: '0.9s' }} />
+        <div className="absolute bottom-4 left-[50%] w-2 h-2 rounded-full bg-pink-500/20 animate-float" style={{ animationDelay: '1.5s' }} />
+        {/* Decorative icon */}
+        <div className="absolute top-2 right-10 opacity-[0.04] dark:opacity-[0.07]">
+          <Library className="h-24 w-24 animate-float" />
+        </div>
+
+        <div className="relative px-4 sm:px-6 pt-6 pb-5">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4"
+          >
+            {/* Animated icon box with gradient + glow */}
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], rotate: [0, -3, 3, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className="flex items-center justify-center h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25"
+            >
+              <Library className="h-6 w-6 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                <span className="aurora-text">Library</span>
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1 font-medium">
+                Your saved videos and subscriptions
+              </p>
+            </div>
+          </motion.div>
+        </div>
+        {/* Creative divider */}
+        <div className="absolute bottom-0 left-0 right-0 divider-creative" />
       </div>
 
       {/* Cards */}

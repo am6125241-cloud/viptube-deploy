@@ -438,11 +438,19 @@ export default function HomeFeed() {
             {/* Featured Videos - horizontal scroll */}
             {featuredVideos.length > 0 && (
               <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Flame className="h-5 w-5 text-red-500" />
-                  <h2 className="text-lg font-extrabold tracking-tight">Trending Now</h2>
+                <div className="flex items-center gap-3 mb-4">
+                  <motion.div
+                    animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 shadow-md shadow-red-500/20"
+                  >
+                    <Flame className="h-4 w-4 text-white" />
+                  </motion.div>
+                  <h2 className="text-xl font-extrabold tracking-tight">
+                    <span className="fire-text">Trending Now</span>
+                  </h2>
                   <NewBadge />
-                  <div className="flex-1 h-px bg-gradient-to-r from-red-500/20 to-transparent ml-2" />
+                  <div className="flex-1 h-px bg-gradient-to-r from-red-500/20 via-orange-500/10 to-transparent ml-2" />
                 </div>
                 <ScrollArea className="w-full">
                   <div className="flex gap-4 pb-4">
@@ -471,10 +479,18 @@ export default function HomeFeed() {
             {/* Main video grid */}
             {gridVideos.length > 0 && (
               <>
-                <div className="flex items-center gap-2 mb-5">
-                  <Sparkles className="h-5 w-5 text-orange-500" />
-                  <h2 className="text-lg font-extrabold tracking-tight">Recommended For You</h2>
-                  <div className="flex-1 h-px bg-gradient-to-r from-orange-500/20 to-transparent ml-2" />
+                <div className="flex items-center gap-3 mb-5">
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1], rotate: [0, -5, 5, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-yellow-500 shadow-md shadow-orange-500/20"
+                  >
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </motion.div>
+                  <h2 className="text-xl font-extrabold tracking-tight">
+                    <span className="sunset-text">Recommended For You</span>
+                  </h2>
+                  <div className="flex-1 h-px bg-gradient-to-r from-orange-500/20 via-yellow-500/10 to-transparent ml-2" />
                 </div>
                 <motion.div
                   initial={{ opacity: 0 }}
