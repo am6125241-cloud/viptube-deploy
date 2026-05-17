@@ -78,7 +78,7 @@ function parseViewCount(text: string): number {
 }
 
 // Fetch YouTube page and extract ytInitialData (with timeout)
-async function fetchYouTubePage(url: string, timeoutMs = 8000): Promise<any | null> {
+async function fetchYouTubePage(url: string, timeoutMs = 6000): Promise<any | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   
@@ -612,29 +612,35 @@ export async function searchYouTube(query: string): Promise<{ videos: YouTubeVid
   }
 }
 
-// Search multiple queries sequentially (not parallel) to avoid Vercel timeout
-export async function searchMultipleQueries(queries: string[], maxTotal = 50): Promise<{ videos: YouTubeVideo[] }> {
+// Search multiple queries in parallel batches for maximum results
+export async function searchMultipleQueries(queries: string[], maxTotal = 80): Promise<{ videos: YouTubeVideo[] }> {
   try {
-    // Only search first 3 queries max to stay within Vercel timeout
-    const limitedQueries = queries.slice(0, 3);
-    let allVideos: YouTubeVideo[] = [];
-    
-    // Run first 2 in parallel, then 3rd as fallback
-    const [r1, r2] = await Promise.allSettled([
-      searchYouTube(limitedQueries[0] || queries[0]),
-      limitedQueries[1] ? searchYouTube(limitedQueries[1]) : Promise.resolve({ videos: [] as YouTubeVideo[] }),
-    ]);
-    
-    if (r1.status === 'fulfilled') allVideos = allVideos.concat(r1.value.videos);
-    if (r2.status === 'fulfilled') allVideos = allVideos.concat(r2.value.videos);
-    
-    // If we don't have enough results, try a 3rd query
-    if (allVideos.length < 10 && limitedQueries[2]) {
-      const r3 = await searchYouTube(limitedQueries[2]);
-      allVideos = allVideos.concat(r3.videos);
+    if (queries.length === 0) return { videos: [] };
+    if (queries.length === 1) {
+      const result = await searchYouTube(queries[0]);
+      return { videos: filterAdultContent(result.videos) };
     }
-    
+
+    let allVideos: YouTubeVideo[] = [];
+
+    // Run ALL queries in batches of 3 (parallel within batch, sequential between batches)
+    const BATCH_SIZE = 3;
+    for (let i = 0; i < queries.length; i += BATCH_SIZE) {
+      const batch = queries.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(q => searchYouTube(q))
+      );
+      for (const r of results) {
+        if (r.status === 'fulfilled') {
+          allVideos = allVideos.concat(r.value.videos);
+        }
+      }
+      // Stop early if we already have enough results
+      if (allVideos.length >= maxTotal) break;
+    }
+
     allVideos = deduplicateVideos(allVideos);
+    allVideos = filterAdultContent(allVideos);
     return { videos: allVideos.slice(0, maxTotal) };
   } catch (error) {
     console.error('Multi-search error:', error);

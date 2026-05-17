@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 'videos' filter — multi-query search for more video results
-    const queries = [q, `${q} latest`, `${q} popular`, `${q} 2025`, `${q} Hindi`, `${q} India`];
-    const result = await searchMultipleQueries(queries, 80);
+    const queries = [q, `${q} latest`, `${q} popular`, `${q} 2025`, `${q} Hindi`, `${q} India`, `${q} video`, `${q} best`, `${q} top`];
+    const result = await searchMultipleQueries(queries, 100);
 
     return NextResponse.json({
       videos: result.videos,
