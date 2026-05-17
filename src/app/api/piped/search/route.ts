@@ -58,11 +58,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 'shorts' filter — dedicated shorts search with many queries for more results
+    // 'shorts' filter — dedicated shorts search for topic + India results
     if (filter === 'shorts') {
       const [shortsResult, shortsResult2] = await Promise.allSettled([
-        searchMultipleQueries([`${q} shorts`, `${q} short video`, `${q} #shorts`, `${q} viral short`], 40),
-        searchMultipleQueries([`${q} trending shorts`, `${q} funny shorts`, `${q} shorts 2025`, `${q} best shorts`, `${q} new shorts`], 40),
+        searchMultipleQueries([`${q} shorts`, `${q} short video`, `${q} #shorts`, `${q} shorts Hindi`], 40),
+        searchMultipleQueries([`${q} shorts India`, `${q} shorts 2025`, `${q} viral shorts India`, `${q} trending shorts Hindi`], 40),
       ]);
       const shorts1 = shortsResult.status === 'fulfilled' ? shortsResult.value.videos : [];
       const shorts2 = shortsResult2.status === 'fulfilled' ? shortsResult2.value.videos : [];

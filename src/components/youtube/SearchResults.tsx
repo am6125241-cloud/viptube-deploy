@@ -152,7 +152,7 @@ function ShortsPlayer({ shorts, onClose }: { shorts: VideoItem[]; onClose: () =>
             {Math.abs(index - activeIndex) <= 1 ? (
               <iframe
                 ref={(el) => { if (el) iframeRefs.current.set(index, el); }}
-                src={`https://www.youtube.com/embed/${video.videoId}?autoplay=${index === activeIndex ? '1' : '0'}&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&loop=1&playlist=${video.videoId}&showinfo=0&iv_load_policy=3`}
+                src={`https://www.youtube.com/embed/${video.videoId}?autoplay=${index === activeIndex ? '1' : '0'}&mute=0&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&loop=1&playlist=${video.videoId}&showinfo=0&iv_load_policy=3`}
                 className="absolute inset-0 w-full h-full"
                 allow="autoplay; encrypted-media; fullscreen"
                 allowFullScreen
