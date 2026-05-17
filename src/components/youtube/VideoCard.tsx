@@ -101,9 +101,9 @@ export default function VideoCard({ video }: VideoCardProps) {
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 rounded-xl"
+      whileHover={{ y: -6, scale: 1.02 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 rounded-2xl premium-hover-lift"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
@@ -112,7 +112,7 @@ export default function VideoCard({ video }: VideoCardProps) {
       data-video-card
     >
       {/* Thumbnail */}
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-lg group-hover:shadow-black/10 dark:group-hover:shadow-black/30 transition-all duration-300">
+      <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-muted shadow-md group-hover:shadow-2xl group-hover:shadow-red-500/10 dark:group-hover:shadow-red-500/5 transition-all duration-500 card-gradient-border">
         {!imageLoaded && (
           <div className="absolute inset-0 bg-muted animate-pulse" />
         )}
@@ -130,30 +130,34 @@ export default function VideoCard({ video }: VideoCardProps) {
           }}
         />
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Hover overlay with shimmer */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+        {/* Shimmer sweep on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="absolute inset-0 shimmer-bg" />
+        </div>
 
-        {/* Play button on hover */}
+        {/* Play button on hover - premium glow */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             initial={false}
-            whileHover={{ scale: 1.1 }}
-            className="w-14 h-14 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-300 shadow-lg shadow-black/30"
+            whileHover={{ scale: 1.15 }}
+            className="w-16 h-16 rounded-full bg-red-600/90 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 transition-all duration-400 shadow-[0_0_30px_rgba(239,68,68,0.5),0_8px_25px_rgba(0,0,0,0.3)]"
           >
-            <Play className="h-7 w-7 text-white fill-white ml-1" />
+            <Play className="h-8 w-8 text-white fill-white ml-1 drop-shadow-lg" />
           </motion.div>
         </div>
 
-        {/* Duration badge */}
+        {/* Duration badge - glassmorphism */}
         {video.duration > 0 && (
-          <div className="absolute bottom-2 right-2 bg-black/85 text-white text-[11px] font-semibold px-1.5 py-0.5 rounded-md tracking-wide">
+          <div className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-lg tracking-wide shadow-sm">
             {formatDuration(video.duration)}
           </div>
         )}
 
-        {/* Shorts badge */}
+        {/* Shorts badge - animated gradient */}
         {video.isShort && (
-          <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm">
+          <div className="absolute top-2.5 left-2.5 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md shadow-red-500/30 animate-pulse-glow">
             Shorts
           </div>
         )}
@@ -198,10 +202,10 @@ export default function VideoCard({ video }: VideoCardProps) {
       </div>
 
       {/* Video info */}
-      <div className="flex gap-3 mt-3 px-0.5">
-        {/* Channel avatar */}
+      <div className="flex gap-3 mt-3 px-1">
+        {/* Channel avatar - animated ring on hover */}
         <div className="shrink-0" onClick={handleChannelClick}>
-          <Avatar className="h-9 w-9 cursor-pointer ring-1 ring-transparent group-hover:ring-muted transition-all duration-300">
+          <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-transparent group-hover:ring-red-500/40 transition-all duration-500 group-hover:scale-110">
             {video.uploaderAvatar ? (
               <AvatarImage src={video.uploaderAvatar} alt={video.uploaderName} />
             ) : null}
@@ -213,7 +217,7 @@ export default function VideoCard({ video }: VideoCardProps) {
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-[13px] font-semibold leading-[1.4] line-clamp-2 text-foreground group-hover:text-foreground transition-colors">
+          <h3 className="text-[13px] font-bold leading-[1.4] line-clamp-2 text-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-300">
             {video.title}
           </h3>
           <div className="flex items-center gap-1 mt-1">
@@ -234,7 +238,7 @@ export default function VideoCard({ video }: VideoCardProps) {
             {progress !== null && progress > 0 && progress < 95 && (
               <>
                 {' · '}
-                <span className="text-red-500 font-medium">Resume</span>
+                <span className="text-red-500 font-bold animate-pulse">Resume</span>
               </>
             )}
           </div>
@@ -287,7 +291,7 @@ export function CompactVideoCard({ video }: CompactVideoCardProps) {
 
   return (
     <div
-      className="flex gap-2 cursor-pointer group rounded-lg hover:bg-muted/50 p-1 -m-1 transition-colors duration-200"
+      className="flex gap-2 cursor-pointer group rounded-xl hover:bg-muted/50 p-1.5 -m-1.5 transition-all duration-300 hover:shadow-md hover:shadow-red-500/5"
       onClick={handleClick}
       role="button"
       tabIndex={0}
@@ -300,11 +304,11 @@ export function CompactVideoCard({ video }: CompactVideoCardProps) {
       data-video-card
     >
       {/* Thumbnail */}
-      <div className="relative w-40 shrink-0 aspect-video rounded-lg overflow-hidden bg-muted">
+      <div className="relative w-40 shrink-0 aspect-video rounded-xl overflow-hidden bg-muted shadow-sm group-hover:shadow-lg transition-all duration-300">
         <img
           src={video.thumbnail}
           alt={video.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           loading="lazy"
         />
         {video.duration > 0 && (
@@ -342,7 +346,7 @@ export function CompactVideoCard({ video }: CompactVideoCardProps) {
 
       {/* Info */}
       <div className="flex-1 min-w-0 py-0.5">
-        <h4 className="text-[13px] font-semibold leading-[1.4] line-clamp-2 text-foreground group-hover:text-foreground">
+        <h4 className="text-[13px] font-bold leading-[1.4] line-clamp-2 text-foreground group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-300">
           {video.title}
         </h4>
         <div className="flex items-center gap-1 mt-1">

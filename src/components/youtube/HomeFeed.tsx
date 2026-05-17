@@ -81,15 +81,27 @@ function HeroBanner() {
   ];
 
   return (
-    <div className="hero-gradient relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-4 left-8 opacity-[0.04] dark:opacity-[0.06]">
+    <div className="relative overflow-hidden">
+      {/* Animated mesh gradient background */}
+      <div className="absolute inset-0 mesh-gradient" />
+      {/* Animated aurora gradient overlay */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 animate-aurora opacity-40" style={{ borderRadius: '0' }} />
+      </div>
+      {/* Floating particles */}
+      <div className="absolute top-6 left-[10%] w-2 h-2 rounded-full bg-red-500/20 animate-float" style={{ animationDelay: '0s' }} />
+      <div className="absolute top-16 left-[25%] w-1.5 h-1.5 rounded-full bg-orange-500/25 animate-float" style={{ animationDelay: '0.5s' }} />
+      <div className="absolute top-8 right-[30%] w-2.5 h-2.5 rounded-full bg-yellow-500/15 animate-float" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-12 right-[15%] w-2 h-2 rounded-full bg-red-400/20 animate-float" style={{ animationDelay: '1.5s' }} />
+      <div className="absolute bottom-8 left-[40%] w-1 h-1 rounded-full bg-orange-400/30 animate-float" style={{ animationDelay: '2s' }} />
+      {/* Decorative background icons */}
+      <div className="absolute top-4 left-8 opacity-[0.05] dark:opacity-[0.08]">
         <Play className="h-32 w-32 animate-spin-slow" />
       </div>
-      <div className="absolute bottom-2 right-12 opacity-[0.03] dark:opacity-[0.05]">
+      <div className="absolute bottom-2 right-12 opacity-[0.04] dark:opacity-[0.07]">
         <TrendingUp className="h-24 w-24 animate-float" />
       </div>
-      <div className="absolute top-1/2 right-1/4 opacity-[0.02] dark:opacity-[0.04]">
+      <div className="absolute top-1/2 right-1/4 opacity-[0.03] dark:opacity-[0.05]">
         <Sparkles className="h-20 w-20 animate-float" style={{ animationDelay: '1s' }} />
       </div>
 
@@ -102,12 +114,12 @@ function HeroBanner() {
         >
           <div className="flex items-center gap-2 mb-2">
             <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             >
               <Flame className="h-5 w-5 text-red-500" />
             </motion.div>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
               Discover
             </span>
           </div>
@@ -121,7 +133,7 @@ function HeroBanner() {
             Your personalized video experience starts here.
           </p>
 
-          {/* Quick action pills */}
+          {/* Quick action pills - premium glass with gradient hover */}
           <div className="flex flex-wrap gap-2">
             {quickActions.map((action, i) => (
               <motion.button
@@ -129,10 +141,10 @@ function HeroBanner() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 + i * 0.1 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.08, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={action.onClick}
-                className="glass flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all hover:shadow-md cursor-pointer"
+                className="glass flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:shadow-lg hover:shadow-red-500/10 cursor-pointer border border-white/10 dark:border-white/5"
               >
                 <action.icon className="h-4 w-4" />
                 {action.label}
@@ -142,9 +154,8 @@ function HeroBanner() {
         </motion.div>
       </div>
 
-      {/* Gradient border at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
-      <div className="absolute bottom-0 left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
+      {/* Creative gradient divider at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 divider-creative" />
     </div>
   );
 }
@@ -305,7 +316,7 @@ export default function HomeFeed() {
       {isAllCategory && <HeroBanner />}
 
       {/* Category chips */}
-      <div className="sticky top-14 z-20 bg-background/90 backdrop-blur-xl border-b border-border/40">
+      <div className="sticky top-14 z-20 bg-background/90 backdrop-blur-xl border-b border-border/30">
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex gap-2 px-4 py-3">
             {categories.map((cat, i) => {
@@ -317,13 +328,13 @@ export default function HomeFeed() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: i * 0.03 }}
-                  whileHover={{ scale: 1.03 }}
+                  whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleCategoryClick(cat.name)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
+                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-300 cursor-pointer ${
                     isActive
-                      ? 'bg-foreground text-background shadow-md animate-chip-bounce'
-                      : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm'
+                      ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/25 animate-chip-bounce'
+                      : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-md hover:shadow-black/5'
                   }`}
                 >
                   <CatIcon className="h-3.5 w-3.5" />

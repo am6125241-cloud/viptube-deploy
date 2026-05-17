@@ -760,15 +760,15 @@ function VideoInfo({
   const { video, likes, channelInfo } = videoData;
 
   return (
-    <div className="mt-3 space-y-3">
-      {/* Title */}
-      <h1 className="text-xl font-extrabold leading-7 tracking-tight">{video.title}</h1>
+    <div className="mt-3 space-y-4">
+      {/* Title - premium gradient hover */}
+      <h1 className="text-xl font-extrabold leading-7 tracking-tight group/video hover:text-red-600 dark:hover:text-red-400 transition-colors duration-300">{video.title}</h1>
 
       {/* Channel info + actions */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 sm:justify-between">
-        {/* Channel */}
+        {/* Channel - avatar with hover ring */}
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 cursor-pointer" onClick={onChannelClick}>
+          <Avatar className="h-10 w-10 cursor-pointer ring-2 ring-transparent hover:ring-red-500/30 transition-all duration-300 hover:scale-110" onClick={onChannelClick}>
             {channelInfo?.avatar || video.channelAvatar ? (
               <AvatarImage src={channelInfo?.avatar || video.channelAvatar || ''} alt={video.channelName} />
             ) : null}
@@ -794,10 +794,10 @@ function VideoInfo({
           </div>
           <Button
             variant={isSubscribed ? 'secondary' : 'default'}
-            className={`rounded-full font-medium ${
+            className={`rounded-full font-bold transition-all duration-300 ${
               isSubscribed
                 ? 'bg-muted text-foreground hover:bg-muted/80'
-                : 'bg-white text-black hover:bg-gray-200 dark:bg-white dark:text-black dark:hover:bg-gray-200'
+                : 'bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 shadow-md shadow-red-500/20'
             }`}
             size="sm"
             onClick={onSubscribe}
@@ -806,21 +806,21 @@ function VideoInfo({
           </Button>
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons - premium glass style */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center rounded-full bg-muted overflow-hidden">
+          <div className="flex items-center rounded-full bg-muted/80 backdrop-blur-sm overflow-hidden shadow-sm">
             <TooltipProvider delayDuration={300}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`rounded-full gap-1.5 px-4 h-9 ${
-                      isLiked ? 'text-foreground' : 'text-muted-foreground'
+                    className={`rounded-full gap-1.5 px-4 h-9 transition-all duration-200 ${
+                      isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-foreground'
                     }`}
                     onClick={onLike}
                   >
-                    <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-foreground' : ''}`} />
+                    <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-red-500' : ''}`} />
                     {likes && <span className="text-sm">{likes}</span>}
                   </Button>
                 </TooltipTrigger>
@@ -853,7 +853,7 @@ function VideoInfo({
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="rounded-full gap-1.5 h-9"
+                  className="rounded-full gap-1.5 h-9 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-all duration-200"
                   onClick={handleShare}
                 >
                   <Share2 className="h-4 w-4" />
