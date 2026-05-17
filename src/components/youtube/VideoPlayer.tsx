@@ -379,6 +379,11 @@ export default function VideoPlayer() {
         {/* Video Player */}
         <YouTubeEmbedPlayer videoId={currentVideoId} title={videoData.video.title} isLive={videoData.video.isLive} onEnded={handleVideoEnd} />
 
+        {/* Playlist Panel - Mobile (RIGHT AFTER video player, prominent position) */}
+        <div className="lg:hidden mt-4">
+          {currentPlaylist && <PlaylistPanel />}
+        </div>
+
         {/* Video Info */}
         <VideoInfo
           videoData={videoData}
@@ -406,11 +411,6 @@ export default function VideoPlayer() {
 
       {/* Playlist Panel - Desktop (shown only when playlist is active) */}
       <div className="hidden lg:block w-[402px] shrink-0">
-        {currentPlaylist && <PlaylistPanel />}
-      </div>
-
-      {/* Related Videos / Playlist - Mobile */}
-      <div className="lg:hidden">
         {currentPlaylist && <PlaylistPanel />}
       </div>
     </div>
@@ -1486,6 +1486,9 @@ function PlaylistPanel() {
                 src={thumbnail}
                 alt={name}
                 className="w-24 h-[54px] rounded-lg object-cover shrink-0"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
               />
             ) : (
               <div className="w-24 h-[54px] rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -1579,18 +1582,16 @@ function PlaylistPanel() {
               >
                 {/* Thumbnail */}
                 <div className="relative w-[120px] aspect-video rounded-md overflow-hidden bg-muted shrink-0">
-                  {video.thumbnail ? (
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Play className="h-4 w-4 text-muted-foreground/30" />
-                    </div>
-                  )}
+                  <img
+                    src={video.thumbnail || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`}
+                    alt={video.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
+                    }}
+                  />
                   {isActive && (
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                       <div className="flex items-center gap-1">

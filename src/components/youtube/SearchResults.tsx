@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { RefreshCw, AlertCircle, SearchX, Users, ListVideo, Video, ChevronRight, Play, Flame, Clapperboard, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -281,7 +282,10 @@ export default function SearchResults() {
         if (!ytRes.ok) return;
         const ytData = await ytRes.json();
         const ytVideos = (ytData.videos || []).filter((v: any) => v.videoId);
-        if (ytVideos.length === 0) return;
+        if (ytVideos.length === 0) {
+          toast.error('No videos found in this playlist');
+          return;
+        }
         const { setCurrentPlaylist } = useAppStore.getState();
         setCurrentPlaylist({
           id: playlist.playlistId,
@@ -304,7 +308,10 @@ export default function SearchResults() {
       }
       const data = await res.json();
       const playlistVideos = (data.videos || []).filter((v: any) => v.videoId);
-      if (playlistVideos.length === 0) return;
+      if (playlistVideos.length === 0) {
+        toast.error('No videos found in this playlist');
+        return;
+      }
       const { setCurrentPlaylist } = useAppStore.getState();
       setCurrentPlaylist({
         id: playlist.playlistId,
@@ -325,6 +332,7 @@ export default function SearchResults() {
       setCurrentView('watch');
     } catch (err) {
       console.error('Playlist load error:', err);
+      toast.error('Failed to load playlist');
     } finally {
       setLoadingPlaylist(null);
     }
