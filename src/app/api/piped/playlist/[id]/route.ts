@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { pipedFetch } from '@/lib/piped-api';
 import { getPlaylistVideosFromYouTube } from '@/lib/youtube-api';
 
+// Always use ytimg.com — Piped proxy URLs are often broken/inaccessible
+function ytThumb(videoId: string, quality = 'hqdefault'): string {
+  return `https://i.ytimg.com/vi/${videoId}/${quality}.jpg`;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -39,7 +44,8 @@ export async function GET(
             return {
               videoId,
               title: v.title || v.name || 'Untitled',
-              thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+              // ALWAYS use ytimg — Piped proxy thumbnails are unreliable
+              thumbnail: videoId ? ytThumb(videoId) : '',
               channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || v.channelId || '',
               channelName: v.uploaderName || v.channelName || '',
               duration: v.duration || 0,
@@ -50,11 +56,8 @@ export async function GET(
           .filter((v: any) => v.videoId && v.videoId.length > 5);
 
         if (videos.length > 0) {
-          // Build playlist thumbnail with fallback
-          let playlistThumb = data.thumbnailUrl || '';
-          if (!playlistThumb && videos.length > 0) {
-            playlistThumb = `https://i.ytimg.com/vi/${videos[0].videoId}/hqdefault.jpg`;
-          }
+          // Playlist thumbnail — use first video's ytimg thumbnail
+          const playlistThumb = videos[0].videoId ? ytThumb(videos[0].videoId) : '';
 
           return NextResponse.json({
             name: data.name || '',
@@ -75,17 +78,9 @@ export async function GET(
     // Fallback: Scrape YouTube directly for playlist videos
     const ytResult = await getPlaylistVideosFromYouTube(id);
     if (ytResult && ytResult.videos.length > 0) {
-      // Build playlist thumbnail with fallback
-      let playlistThumb = ytResult.thumbnailUrl || '';
-      if (!playlistThumb && ytResult.videos.length > 0) {
-        const firstVid = ytResult.videos[0];
-        const vid = firstVid.videoId || firstVid.url?.replace('/watch?v=', '') || '';
-        if (vid) playlistThumb = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
-      }
-
       return NextResponse.json({
         name: ytResult.name,
-        thumbnailUrl: playlistThumb,
+        thumbnailUrl: ytResult.videos[0]?.videoId ? ytThumb(ytResult.videos[0].videoId) : (ytResult.thumbnailUrl || ''),
         uploaderName: ytResult.uploaderName,
         uploaderUrl: ytResult.uploaderUrl,
         uploaderAvatar: ytResult.uploaderAvatar,
@@ -94,7 +89,8 @@ export async function GET(
           return {
             videoId,
             title: v.title || 'Untitled',
-            thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+            // ALWAYS use ytimg — YouTube scraper thumbnails may also have issues
+            thumbnail: videoId ? ytThumb(videoId) : '',
             channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || '',
             channelName: v.uploaderName || '',
             duration: v.duration || 0,

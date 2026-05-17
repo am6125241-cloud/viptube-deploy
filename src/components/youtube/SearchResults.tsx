@@ -563,11 +563,12 @@ export default function SearchResults() {
                   className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer text-left disabled:opacity-60"
                 >
                   <div className="relative w-40 sm:w-48 aspect-video rounded-lg overflow-hidden bg-muted shrink-0">
-                    {playlist.thumbnail ? (
+                    {playlist.thumbnail && !playlist.thumbnail.includes('pipedproxy') ? (
                       <img src={playlist.thumbnail} alt={playlist.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-muted to-muted/50">
                         <ListVideo className="h-8 w-8 text-muted-foreground/40" />
+                        <span className="text-[10px] text-muted-foreground mt-1">Playlist</span>
                       </div>
                     )}
                     <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded">

@@ -594,14 +594,38 @@ function YouTubeEmbedPlayer({ videoId, title, isLive, onEnded }: { videoId: stri
     }
   }, []);
 
-  // Listen for fullscreen change events to sync state
+  // Exit fullscreen — works regardless of how fullscreen was entered
+  const exitFs = useCallback(() => {
+    if (document.fullscreenElement) {
+      (document.exitFullscreen?.() || (document as any).webkitExitFullscreen?.() || (document as any).mozCancelFullScreen?.()).catch?.(() => {});
+    }
+    // Also try to exit from YouTube iframe
+    const iframe = wrapperRef.current?.querySelector('iframe') as HTMLIFrameElement | null;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'exitFullscreen', args: [] }), '*');
+    }
+  }, []);
+
+  // Listen for fullscreen change events + resize to detect YouTube's internal fullscreen
   useEffect(() => {
-    const handler = () => setIsFs(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handler);
-    document.addEventListener('webkitfullscreenchange', handler);
+    const fsHandler = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', fsHandler);
+    document.addEventListener('webkitfullscreenchange', fsHandler);
+
+    // Also detect fullscreen via window size (catches YouTube's internal fullscreen)
+    const resizeHandler = () => {
+      const isFullScreen = (
+        window.innerWidth === screen.width &&
+        window.innerHeight === screen.height
+      ) || !!document.fullscreenElement;
+      setIsFs(isFullScreen);
+    };
+    window.addEventListener('resize', resizeHandler);
+
     return () => {
-      document.removeEventListener('fullscreenchange', handler);
-      document.removeEventListener('webkitfullscreenchange', handler);
+      document.removeEventListener('fullscreenchange', fsHandler);
+      document.removeEventListener('webkitfullscreenchange', fsHandler);
+      window.removeEventListener('resize', resizeHandler);
     };
   }, []);
 
@@ -683,14 +707,15 @@ function YouTubeEmbedPlayer({ videoId, title, isLive, onEnded }: { videoId: stri
           </div>
         )}
 
-        {/* Exit fullscreen button — only visible in fullscreen mode, in top-right */}
+        {/* Exit fullscreen button — always visible in fullscreen, top-right */}
         {isFs && (
           <button
-            onClick={toggleFs}
-            className="absolute top-3 right-3 z-50 flex items-center justify-center w-10 h-10 rounded-full bg-black/60 active:bg-black/80 text-white transition-colors"
+            onClick={exitFs}
+            className="absolute top-3 right-3 z-[100] flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 hover:bg-black/90 text-white transition-colors backdrop-blur-sm"
             aria-label="Exit fullscreen"
           >
-            <Minimize2 className="w-5 h-5" />
+            <Minimize2 className="w-4 h-4" />
+            <span className="text-xs font-medium">Exit</span>
           </button>
         )}
       </div>
