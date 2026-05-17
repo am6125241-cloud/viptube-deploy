@@ -23,7 +23,7 @@ export async function GET(
 
     // Try Piped API first (with longer timeout)
     try {
-      const res = await pipedFetch(pipedPath, 10000);
+      const res = await pipedFetch(pipedPath, 12000);
       if (res.ok) {
         const data = await res.json();
 
@@ -34,22 +34,31 @@ export async function GET(
             if (v.videoId) return true;
             return false;
           })
-          .map((v: any) => ({
-            videoId: v.url ? v.url.replace('/watch?v=', '') : (v.videoId || ''),
-            title: v.title || v.name || 'Untitled',
-            thumbnail: v.thumbnail || '',
-            channelId: v.uploaderUrl?.replace('/channel/', '') || v.channelId || '',
-            channelName: v.uploaderName || v.channelName || '',
-            duration: v.duration || 0,
-            views: v.views || 0,
-            uploaded: v.uploaded || v.uploadedDate || 0,
-          }))
+          .map((v: any) => {
+            const videoId = v.url ? v.url.replace('/watch?v=', '') : (v.videoId || '');
+            return {
+              videoId,
+              title: v.title || v.name || 'Untitled',
+              thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+              channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || v.channelId || '',
+              channelName: v.uploaderName || v.channelName || '',
+              duration: v.duration || 0,
+              views: v.views || 0,
+              uploaded: v.uploaded || v.uploadedDate || 0,
+            };
+          })
           .filter((v: any) => v.videoId && v.videoId.length > 5);
 
         if (videos.length > 0) {
+          // Build playlist thumbnail with fallback
+          let playlistThumb = data.thumbnailUrl || '';
+          if (!playlistThumb && videos.length > 0) {
+            playlistThumb = `https://i.ytimg.com/vi/${videos[0].videoId}/hqdefault.jpg`;
+          }
+
           return NextResponse.json({
             name: data.name || '',
-            thumbnailUrl: data.thumbnailUrl || '',
+            thumbnailUrl: playlistThumb,
             uploaderName: data.uploaderName || '',
             uploaderUrl: data.uploaderUrl || '',
             uploaderAvatar: data.uploaderAvatar || '',
@@ -66,22 +75,33 @@ export async function GET(
     // Fallback: Scrape YouTube directly for playlist videos
     const ytResult = await getPlaylistVideosFromYouTube(id);
     if (ytResult && ytResult.videos.length > 0) {
+      // Build playlist thumbnail with fallback
+      let playlistThumb = ytResult.thumbnailUrl || '';
+      if (!playlistThumb && ytResult.videos.length > 0) {
+        const firstVid = ytResult.videos[0];
+        const vid = firstVid.videoId || firstVid.url?.replace('/watch?v=', '') || '';
+        if (vid) playlistThumb = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
+      }
+
       return NextResponse.json({
         name: ytResult.name,
-        thumbnailUrl: ytResult.thumbnailUrl,
+        thumbnailUrl: playlistThumb,
         uploaderName: ytResult.uploaderName,
         uploaderUrl: ytResult.uploaderUrl,
         uploaderAvatar: ytResult.uploaderAvatar,
-        videos: ytResult.videos.map(v => ({
-          videoId: v.videoId,
-          title: v.title,
-          thumbnail: v.thumbnail,
-          channelId: v.uploaderUrl?.replace('/channel/', '') || '',
-          channelName: v.uploaderName,
-          duration: v.duration,
-          views: v.views,
-          uploaded: v.uploaded,
-        })),
+        videos: ytResult.videos.map((v: any) => {
+          const videoId = v.videoId || v.url?.replace('/watch?v=', '') || '';
+          return {
+            videoId,
+            title: v.title || 'Untitled',
+            thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+            channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || '',
+            channelName: v.uploaderName || '',
+            duration: v.duration || 0,
+            views: v.views || 0,
+            uploaded: v.uploaded || 0,
+          };
+        }),
         nextpage: null,
       });
     }

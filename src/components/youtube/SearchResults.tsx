@@ -286,12 +286,12 @@ export default function SearchResults() {
         setCurrentPlaylist({
           id: playlist.playlistId,
           name: ytData.name || playlist.title || 'Playlist',
-          thumbnail: ytData.thumbnailUrl || playlist.thumbnail || '',
+          thumbnail: ytData.thumbnailUrl || playlist.thumbnail || (ytVideos[0] ? `https://i.ytimg.com/vi/${ytVideos[0].videoId}/hqdefault.jpg` : ''),
           channelName: ytData.uploaderName || playlist.channelName || '',
           videos: ytVideos.map((v: any) => ({
             videoId: v.videoId,
             title: v.title || 'Untitled',
-            thumbnail: v.thumbnail || '',
+            thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
             channelId: v.channelId || '',
             channelName: v.channelName || '',
             duration: v.duration || 0,
@@ -309,12 +309,12 @@ export default function SearchResults() {
       setCurrentPlaylist({
         id: playlist.playlistId,
         name: data.name || playlist.title || 'Playlist',
-        thumbnail: data.thumbnailUrl || playlist.thumbnail || '',
+        thumbnail: data.thumbnailUrl || playlist.thumbnail || (playlistVideos[0] ? `https://i.ytimg.com/vi/${playlistVideos[0].videoId}/hqdefault.jpg` : ''),
         channelName: data.uploaderName || playlist.channelName || '',
         videos: playlistVideos.map((v: any) => ({
           videoId: v.videoId,
           title: v.title || 'Untitled',
-          thumbnail: v.thumbnail || '',
+          thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
           channelId: v.channelId || '',
           channelName: v.channelName || '',
           duration: v.duration || 0,

@@ -7,44 +7,6 @@ import { searchYouTube, getCategoryVideos, searchMultipleQueries, searchYouTubeF
 // PIPED SEARCH — Primary (fast, reliable)
 // ============================================================
 
-interface PipedStream {
-  url?: string;
-  type: 'stream';
-  title?: string;
-  thumbnail?: string;
-  uploaderName?: string;
-  uploaderUrl?: string;
-  uploaderAvatar?: string;
-  uploadedDate?: string;
-  duration?: number;
-  views?: number;
-  uploaded?: number;
-  isShort?: boolean;
-  shortDescription?: string;
-}
-
-interface PipedChannel {
-  url?: string;
-  type: 'channel';
-  name?: string;
-  thumbnail?: string;
-  subscribers?: number;
-  description?: string;
-  uploaderAvatar?: string;
-  verified?: boolean;
-}
-
-interface PipedPlaylist {
-  url?: string;
-  type: 'playlist';
-  name?: string;
-  thumbnail?: string;
-  uploaderName?: string;
-  uploaderUrl?: string;
-  videos?: number;
-  uploaderAvatar?: string;
-}
-
 function extractVideoIdFromUrl(url: string): string {
   if (!url) return '';
   const match = url.match(/[?&]v=([^&]+)/);
@@ -79,69 +41,61 @@ async function searchPiped(query: string, filter: string): Promise<{
   const channels: any[] = [];
   const playlists: any[] = [];
 
-  // Map our filter to Piped filter
   let pipedFilter = 'videos';
   if (filter === 'channels') pipedFilter = 'channels';
   else if (filter === 'playlists') pipedFilter = 'playlists';
   else if (filter === 'shorts') pipedFilter = 'shorts';
   else if (filter === 'all') pipedFilter = 'all';
-  else pipedFilter = 'videos';
 
   try {
-    const res = await pipedFetch(`/search?q=${encodeURIComponent(query)}&filter=${pipedFilter}`, 10000);
+    const res = await pipedFetch(`/search?q=${encodeURIComponent(query)}&filter=${pipedFilter}`, 12000);
     if (!res.ok) return { videos, channels, playlists };
     const items = await res.json();
-
     if (!Array.isArray(items)) return { videos, channels, playlists };
 
     for (const item of items) {
       if (item.type === 'stream') {
-        const stream = item as PipedStream;
-        const videoId = extractVideoIdFromUrl(stream.url || '');
-        if (!videoId || !stream.title) continue;
+        const videoId = extractVideoIdFromUrl(item.url || '');
+        if (!videoId || !item.title) continue;
 
         // For shorts filter, only include shorts (< 60s)
-        if (filter === 'shorts' && stream.duration && stream.duration >= 60) continue;
+        if (filter === 'shorts' && item.duration && item.duration >= 60) continue;
         // For videos filter, exclude shorts
-        if (filter === 'videos' && stream.duration && stream.duration < 60 && stream.isShort) continue;
+        if (filter === 'videos' && item.duration && item.duration < 60 && item.isShort) continue;
 
         videos.push({
           videoId,
-          title: stream.title || '',
-          thumbnail: stream.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-          channelName: stream.uploaderName || '',
-          channelId: extractChannelIdFromUrl(stream.uploaderUrl || ''),
-          channelAvatar: stream.uploaderAvatar || '',
-          duration: stream.duration || 0,
-          views: stream.views || 0,
-          uploadedDate: stream.uploadedDate || '',
-          isShort: stream.isShort || (stream.duration > 0 && stream.duration < 60) || false,
+          title: item.title || '',
+          thumbnail: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+          channelName: item.uploaderName || '',
+          channelId: extractChannelIdFromUrl(item.uploaderUrl || ''),
+          channelAvatar: item.uploaderAvatar || '',
+          duration: item.duration || 0,
+          views: item.views || 0,
+          uploadedDate: item.uploadedDate || '',
+          isShort: item.isShort || (item.duration > 0 && item.duration < 60) || false,
         });
       } else if (item.type === 'channel') {
-        const ch = item as PipedChannel;
-        const channelId = extractChannelIdFromUrl(ch.url || '');
-        if (!channelId || !ch.name) continue;
-
+        const channelId = extractChannelIdFromUrl(item.url || '');
+        if (!channelId || !item.name) continue;
         channels.push({
           channelId,
-          name: ch.name || '',
-          avatar: ch.thumbnail || ch.uploaderAvatar || '',
-          subscribers: ch.subscribers ? `${ch.subscribers} subscribers` : '',
-          description: ch.description || '',
-          verified: ch.verified || false,
+          name: item.name || '',
+          avatar: item.thumbnail || item.uploaderAvatar || '',
+          subscribers: item.subscribers ? `${item.subscribers} subscribers` : '',
+          description: item.description || '',
+          verified: item.verified || false,
         });
       } else if (item.type === 'playlist') {
-        const pl = item as PipedPlaylist;
-        const playlistId = extractPlaylistIdFromUrl(pl.url || '');
-        if (!playlistId || !pl.name) continue;
-
+        const playlistId = extractPlaylistIdFromUrl(item.url || '');
+        if (!playlistId || !item.name) continue;
         playlists.push({
           playlistId,
-          title: pl.name || '',
-          thumbnail: pl.thumbnail || '',
-          videoCount: pl.videos || 0,
-          channelName: pl.uploaderName || '',
-          channelId: extractChannelIdFromUrl(pl.uploaderUrl || ''),
+          title: item.name || '',
+          thumbnail: item.thumbnail || '',
+          videoCount: item.videos || 0,
+          channelName: item.uploaderName || '',
+          channelId: extractChannelIdFromUrl(item.uploaderUrl || ''),
         });
       }
     }
@@ -152,31 +106,19 @@ async function searchPiped(query: string, filter: string): Promise<{
   return { videos, channels, playlists };
 }
 
-// Search Piped with multiple queries in parallel for more results
-async function searchPipedMultiple(queries: string[], filter: string, maxTotal = 80): Promise<YouTubeVideoData[]> {
-  const BATCH_SIZE = 3;
-  let allVideos: YouTubeVideoData[] = [];
-  const seenIds = new Set<string>();
-
-  for (let i = 0; i < queries.length; i += BATCH_SIZE) {
-    const batch = queries.slice(i, i + BATCH_SIZE);
-    const results = await Promise.allSettled(
-      batch.map(q => searchPiped(q, filter))
-    );
-    for (const r of results) {
-      if (r.status === 'fulfilled') {
-        for (const v of r.value.videos) {
-          if (!seenIds.has(v.videoId)) {
-            seenIds.add(v.videoId);
-            allVideos.push(v);
-          }
-        }
+// Merge videos deduplicating by videoId
+function mergeVideos(...arrays: YouTubeVideoData[][]): YouTubeVideoData[] {
+  const seen = new Set<string>();
+  const merged: YouTubeVideoData[] = [];
+  for (const arr of arrays) {
+    for (const v of arr) {
+      if (v.videoId && !seen.has(v.videoId)) {
+        seen.add(v.videoId);
+        merged.push(v);
       }
     }
-    if (allVideos.length >= maxTotal) break;
   }
-
-  return allVideos.slice(0, maxTotal);
+  return merged;
 }
 
 // ============================================================
@@ -201,7 +143,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ suggestions: results });
     }
 
-    // Category-based fetch — keep using YouTube scraper with category queries
+    // Category-based fetch
     if (category) {
       let videos: YouTubeVideoData[] = [];
       try {
@@ -225,103 +167,94 @@ export async function GET(request: NextRequest) {
     }
 
     // ============================================================
-    // PIPED FIRST — for all search filters
+    // 'videos' filter — Piped single query + variant as fallback
     // ============================================================
-
-    // 'videos' filter — Piped multi-query for max results
     if (filter === 'videos') {
-      // Try Piped first with multiple queries
-      const pipedQueries = [q, `${q} latest`, `${q} 2025`, `${q} Hindi`, `${q} India`, `${q} popular`, `${q} best`, `${q} top`, `${q} new`];
-      const pipedVideos = await searchPipedMultiple(pipedQueries, 'videos', 100);
+      // Try Piped with the exact query first
+      const piped1 = await searchPiped(q, 'videos');
+      // Also try a variant query in parallel
+      const piped2 = await searchPiped(`${q} 2025`, 'videos');
+      const pipedVideos = mergeVideos(piped1.videos, piped2.videos);
 
-      // If Piped returned good results, use them
-      if (pipedVideos.length >= 5) {
-        return NextResponse.json({ videos: pipedVideos, channels: [], playlists: [] });
+      if (pipedVideos.length >= 8) {
+        return NextResponse.json({ videos: pipedVideos.slice(0, 100), channels: [], playlists: [] });
       }
 
-      // Fallback to YouTube scraping
-      console.log('[Search] Piped returned few results, falling back to YouTube scraper');
-      const ytQueries = [q, `${q} latest`, `${q} popular`, `${q} 2025`, `${q} Hindi`, `${q} India`];
-      const ytResult = await searchMultipleQueries(ytQueries, 100);
-      const combined = [...pipedVideos];
-      const seenIds = new Set(pipedVideos.map(v => v.videoId));
-      for (const v of ytResult.videos) {
-        if (!seenIds.has(v.videoId)) {
-          seenIds.add(v.videoId);
-          combined.push(v);
-        }
-      }
+      // Piped returned few results — add YouTube scraper as supplement
+      console.log(`[Search] Piped returned ${pipedVideos.length} videos, supplementing with YouTube scraper`);
+      const ytResult = await searchMultipleQueries([q, `${q} latest`, `${q} popular`], 80);
+      const combined = mergeVideos(pipedVideos, ytResult.videos);
       return NextResponse.json({ videos: combined.slice(0, 100), channels: [], playlists: [] });
     }
 
-    // 'shorts' filter — Piped shorts search
+    // ============================================================
+    // 'shorts' filter
+    // ============================================================
     if (filter === 'shorts') {
-      const shortsQueries = [q, `${q} shorts`, `${q} short video`, `${q} shorts Hindi`, `${q} shorts India`, `${q} trending shorts`];
-      const pipedShorts = await searchPipedMultiple(shortsQueries, 'shorts', 80);
+      const [piped1, piped2] = await Promise.allSettled([
+        searchPiped(`${q} shorts`, 'shorts'),
+        searchPiped(q, 'shorts'),
+      ]);
+      const p1 = piped1.status === 'fulfilled' ? piped1.value.videos : [];
+      const p2 = piped2.status === 'fulfilled' ? piped2.value.videos : [];
+      const pipedShorts = mergeVideos(p1, p2);
 
       if (pipedShorts.length >= 3) {
         return NextResponse.json({ videos: [], channels: [], playlists: [], shorts: pipedShorts });
       }
 
-      // Fallback to YouTube scraper
-      console.log('[Search] Piped shorts returned few results, falling back to YouTube');
-      const [shortsResult] = await Promise.allSettled([
-        searchMultipleQueries([`${q} shorts`, `${q} short video`, `${q} #shorts`, `${q} shorts Hindi`], 40),
-      ]);
-      const ytShorts = shortsResult.status === 'fulfilled' ? shortsResult.value.videos : [];
-      const combined = [...pipedShorts];
-      const seenIds = new Set(pipedShorts.map(v => v.videoId));
-      for (const v of ytShorts) {
-        if (!seenIds.has(v.videoId)) {
-          seenIds.add(v.videoId);
-          combined.push(v);
-        }
-      }
+      // YouTube fallback for shorts
+      console.log('[Search] Piped shorts low, falling back to YouTube');
+      const ytResult = await searchMultipleQueries([`${q} shorts`, `${q} short video`, `${q} #shorts`], 40);
+      const combined = mergeVideos(pipedShorts, ytResult.videos);
       return NextResponse.json({ videos: [], channels: [], playlists: [], shorts: combined });
     }
 
-    // 'channels' filter — Piped channels search
+    // ============================================================
+    // 'channels' filter
+    // ============================================================
     if (filter === 'channels') {
       const pipedResult = await searchPiped(q, 'channels');
       if (pipedResult.channels.length >= 1) {
         return NextResponse.json({ videos: [], channels: pipedResult.channels, playlists: [] });
       }
-      // Fallback
       const ytResult = await searchYouTubeFiltered(q, 'channels');
       return NextResponse.json({ videos: ytResult.videos, channels: ytResult.channels, playlists: ytResult.playlists });
     }
 
-    // 'playlists' filter — Piped playlists search
+    // ============================================================
+    // 'playlists' filter
+    // ============================================================
     if (filter === 'playlists') {
       const pipedResult = await searchPiped(q, 'playlists');
       if (pipedResult.playlists.length >= 1) {
         return NextResponse.json({ videos: [], channels: [], playlists: pipedResult.playlists });
       }
-      // Fallback
       const ytResult = await searchYouTubeFiltered(q, 'playlists');
       return NextResponse.json({ videos: ytResult.videos, channels: ytResult.channels, playlists: ytResult.playlists });
     }
 
-    // 'all' filter — Piped all search + dedicated shorts
+    // ============================================================
+    // 'all' filter — Piped + dedicated shorts
+    // ============================================================
     if (filter === 'all') {
-      const [videoResult, shortsResult] = await Promise.allSettled([
-        searchPipedMultiple([q, `${q} latest`, `${q} popular`, `${q} 2025`, `${q} Hindi`], 'videos', 60),
-        searchPipedMultiple([`${q} shorts`, `${q} short video`, `${q} #shorts`], 'shorts', 30),
-      ]);
+      // Get videos, channels, playlists from Piped 'all' filter
+      const pipedAll = await searchPiped(q, 'all');
+      // Get dedicated shorts
+      const pipedShorts = await searchPiped(`${q} shorts`, 'shorts');
 
-      const pipedVideos = videoResult.status === 'fulfilled' ? videoResult.value : [];
-      const pipedShorts = shortsResult.status === 'fulfilled' ? shortsResult.value : [];
-
-      // Also get channels and playlists from Piped
-      const { channels, playlists } = await searchPiped(q, 'all');
-
-      // If Piped gave good results, return them
-      if (pipedVideos.length >= 5 || channels.length >= 1 || playlists.length >= 1) {
-        return NextResponse.json({ videos: pipedVideos, channels, playlists, shorts: pipedShorts });
+      // If we got decent results from Piped, return them
+      if (pipedAll.videos.length >= 5 || pipedAll.channels.length >= 1 || pipedAll.playlists.length >= 1) {
+        return NextResponse.json({
+          videos: pipedAll.videos.slice(0, 60),
+          channels: pipedAll.channels,
+          playlists: pipedAll.playlists,
+          shorts: pipedShorts.videos.slice(0, 30),
+        });
       }
 
-      // Fallback to YouTube
-      console.log('[Search] Piped "all" returned few results, falling back to YouTube');
+      // Piped low results — supplement with YouTube scraper
+      console.log('[Search] Piped "all" low, supplementing with YouTube');
       const [ytVideoResult, ytMixedResult, ytShortsResult] = await Promise.allSettled([
         searchMultipleQueries([q, `${q} latest`, `${q} popular`], 60),
         searchYouTubeFiltered(q, 'all'),
@@ -332,27 +265,14 @@ export async function GET(request: NextRequest) {
       const ytPlaylists = ytMixedResult.status === 'fulfilled' ? (ytMixedResult.value.playlists || []) : [];
       const ytShorts = ytShortsResult.status === 'fulfilled' ? ytShortsResult.value.videos : [];
 
-      // Merge Piped + YouTube results
-      const seenIds = new Set(pipedVideos.map(v => v.videoId));
-      const combinedVideos = [...pipedVideos];
-      for (const v of ytVideos) {
-        if (!seenIds.has(v.videoId)) { seenIds.add(v.videoId); combinedVideos.push(v); }
-      }
-      const seenShortIds = new Set(pipedShorts.map(v => v.videoId));
-      const combinedShorts = [...pipedShorts];
-      for (const v of ytShorts) {
-        if (!seenShortIds.has(v.videoId)) { seenShortIds.add(v.videoId); combinedShorts.push(v); }
-      }
-
       return NextResponse.json({
-        videos: combinedVideos.slice(0, 60),
-        channels: channels.length > 0 ? channels : ytChannels,
-        playlists: playlists.length > 0 ? playlists : ytPlaylists,
-        shorts: combinedShorts.slice(0, 30),
+        videos: mergeVideos(pipedAll.videos, ytVideos).slice(0, 60),
+        channels: pipedAll.channels.length > 0 ? pipedAll.channels : ytChannels,
+        playlists: pipedAll.playlists.length > 0 ? pipedAll.playlists : ytPlaylists,
+        shorts: mergeVideos(pipedShorts.videos, ytShorts).slice(0, 30),
       });
     }
 
-    // Default fallback
     return NextResponse.json({ videos: [], channels: [], playlists: [] });
   } catch (error) {
     console.error('Search API error:', error);

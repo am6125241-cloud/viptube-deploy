@@ -238,8 +238,8 @@ export default function ChannelPage() {
       const videos: QueueItem[] = (playlistData.videos || []).map((v: any) => ({
         videoId: v.url?.replace('/watch?v=', '') || v.videoId || '',
         title: v.title || 'Untitled',
-        thumbnail: v.thumbnail || '',
-        channelId: v.uploaderUrl?.replace('/channel/', '') || '',
+        thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${v.videoId || v.url?.replace('/watch?v=', '')}/hqdefault.jpg`,
+        channelId: v.uploaderUrl?.replace('/channel/', '')?.replace('/@', '') || '',
         channelName: v.uploaderName || playlist?.channelName || '',
         duration: v.duration || 0,
       })).filter((v: QueueItem) => v.videoId);
@@ -248,7 +248,7 @@ export default function ChannelPage() {
         setCurrentPlaylist({
           id: playlistId,
           name: playlistData.name || playlist?.title || 'Playlist',
-          thumbnail: playlistData.thumbnailUrl || playlist?.thumbnail || '',
+          thumbnail: playlistData.thumbnailUrl || playlist?.thumbnail || (videos[0] ? `https://i.ytimg.com/vi/${videos[0].videoId}/hqdefault.jpg` : ''),
           channelName: playlistData.uploaderName || playlist?.channelName || '',
           videos,
           currentIndex: 0,
