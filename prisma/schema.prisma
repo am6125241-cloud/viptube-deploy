@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "sqlite"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  watchHistory  WatchHistory[]
+  subscriptions Subscription[]
+  likedVideos   LikedVideo[]
+  dislikedVideos DislikedVideo[]
+  watchLater    WatchLater[]
+  playlists     Playlist[]
+}
+
+model WatchHistory {
+  id        String   @id @default(cuid())
+  videoId   String
+  title     String
+  thumbnail String
+  channelId String
+  channelName String
+  duration  Int
+  watchedAt DateTime @default(now())
+  userId    String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  channelId     String
+  channelName   String
+  channelAvatar String?
+  subscriberCount Int?
+  subscribedAt  DateTime @default(now())
+  userId        String
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, channelId])
+  @@index([userId])
+}
+
+model LikedVideo {
+  id        String   @id @default(cuid())
+  videoId   String
+  title     String
+  thumbnail String
+  channelId String
+  channelName String
+  duration  Int
+  likedAt   DateTime @default(now())
+  userId    String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, videoId])
+  @@index([userId])
+}
+
+model DislikedVideo {
+  id          String   @id @default(cuid())
+  videoId     String
+  dislikedAt  DateTime @default(now())
+  userId      String
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, videoId])
+  @@index([userId])
+}
+
+model WatchLater {
+  id        String   @id @default(cuid())
+  videoId   String
+  title     String
+  thumbnail String
+  channelId String
+  channelName String
+  duration  Int
+  addedAt   DateTime @default(now())
+  userId    String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, videoId])
+  @@index([userId])
+}
+
+model Playlist {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       PlaylistItem[]
+  
+  @@index([userId])
+}
+
+model PlaylistItem {
+  id         String   @id @default(cuid())
+  videoId    String
+  title      String
+  thumbnail  String
+  channelId  String
+  channelName String
+  duration   Int
+  position   Int
+  addedAt    DateTime @default(now())
+  
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  
+  @@unique([playlistId, videoId])
+  @@index([playlistId])
+}
+
+model SiteVisit {
+  id         String   @id @default(cuid())
+  visitorId  String
+  userName   String   @default("")
+  device     String
+  browser    String
+  os         String
+  screenRes  String
+  language   String
+  referrer   String   @default("")
+  page       String   @default("home")
+  isOnline   Boolean  @default(true)
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  
+  @@index([visitorId])
+  @@index([isOnline])
+  @@index([createdAt])
+}

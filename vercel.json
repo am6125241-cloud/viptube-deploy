@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "npx prisma generate && next build",
+  "installCommand": "npm install",
+  "functions": {
+    "src/app/api/piped/trending/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/piped/search/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/piped/video/[id]/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/piped/channel/[id]/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/piped/landing-trending/route.ts": {
+      "maxDuration": 15
+    }
+  }
+}
